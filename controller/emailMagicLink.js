@@ -1,12 +1,13 @@
 const nodemailer = require('nodemailer')
 const transport = nodemailer.createTransport({
-	service: 'Gmail',
+	port: process.env.PORT,
+    host: "smtp.gmail.com",
 	auth: {
-		user: "shivanipanwar318@gmail.com",
-		pass: "Shivani@123",
+		user: process.env.EMAIL,
+		pass: process.env.PASS,
 	}
 });
-const URL = 'http://localhost:3000/enter/'
+const URL = 'http://localhost:3000/email/'
 
 exports.send_magic_link = async (email,link,which) => {
 	if(which == 'signup'){
@@ -17,19 +18,17 @@ exports.send_magic_link = async (email,link,which) => {
 		body= '<p>Hello friend and welcome back. This is your link to sign in to your account: '+(URL+email+'/'+link)+ '</p><p>Needless to remind you not to share this link with anyone 🤫</p>' }
 		const mailOptions = {
 			to: email,
-			from: "shivanipanwar318@gmail.com",
+			from: process.env.EMAIL,
 			subject: subj,
 			html: body
 		}
 		try{
 			const response = await transport.sendMail(mailOptions)
-			console.log('Link sent 📬')
+			console.log('Link sent ')
 			return({ok:true,message:'email sent'})
 		}
 		catch( err ){
-			console.log("Something didn't work out 😭", err)
+			console.log("Something didn't work out ", err)
 			return({ok:false,message:err})
 		}
 	}
-
-	//module.exports = { send_magic_link }

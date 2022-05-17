@@ -2,8 +2,6 @@ const User = require("../model/userModel");
 const Otp = require("../model/otpModel");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
-//const jwt = require("jsonwebtoken");
-//const { validationResult } = require("express-validator");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -24,7 +22,6 @@ exports.signup = async (req, res, next) => {
       });
       newUser
         .save()
-
         .then((result) => {
           sendOtp(result, res);
         })
@@ -39,57 +36,21 @@ exports.signup = async (req, res, next) => {
   }
 };
 
-/*
-exports.signup = async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(422).json({ errors: errors.array() });
-      return;
-    }
-    const { username, email,password} = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const userData = await User.create({
-      username,
-      email,
-      password: hashedPassword,
-      address,
-      contactNo
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Data saved successfully.",
-      data: userData,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message:
-        "We are having some error while completing your request. Please try again after some time.",
-      error: error,
-    });
-  }
-};
-
-*/
-
 const sendOtp = async ({ _id, email }, res) => {
   try {
     const otp = `${Math.floor(100 + Math.random() * 9000)}`;
 
     let transporter = nodemailer.createTransport({
-      port: 465,
+      port: process.env.PORT,
       host: "smtp.gmail.com",
       auth: {
-        user: "shivanipanwar318@gmail.com",
-        pass: "Shivani@123",
+        user: process.env.EMAIL,
+        pass: process.env.PASS,
       },
     });
 
     const mailOptions = {
-      from: "shivanipanwar318@gmail.com",
+      from: process.env.EMAIL,
       to: email,
       subject: "Verify your email",
       html: ` hello <br><p>Your One Time OTP is  ${otp} `,
@@ -122,51 +83,42 @@ const sendOtp = async ({ _id, email }, res) => {
   }
 };
 
-
-exports.verify= async(req,res)=>{
-  try{
-const { userId,otp}=req.body;
-if(!userId||!otp){
-throw Error("Empty otp details are not sent");
-  }
-  else{
-    const verification= await Otp.find({
-      userId,
-
-    })
-    if(verification.length<=0){
-      throw new Error("Account record does not  exist")
-    }
-
-    else{
-      const {expiresAt} = verification[0];
-      const hashedOTP=verification[0].otp;
-      if(expiresAt<Date.now()){
-        await Otp.deleteMany(userId);
-        throw new Error("code has expired ,please request again")
-      }
-      else{
-        const validOtp= await bcrypt.compare(otp,hashedOTP)
-        if(!validOtp){
-          throw new Error("Invalid code passes, please check your inbox")
-        }
-        else{
-          await User.updateOne({_id:userId}, {verified:true})
-          await Otp.deleteMany({userId});
-          res.json({
-            status:"VERIFIED",
-            message:"User verified and login successfully"
-          })
+exports.verify = async (req, res) => {
+  try {
+    const { userId, otp } = req.body;
+    if (!userId || !otp) {
+      throw Error("Empty otp details are not sent");
+    } else {
+      const verification = await Otp.find({
+        userId,
+      });
+      if (verification.length <= 0) {
+        throw new Error("Account record does not  exist you have user One time Otp ");
+      } else {
+        const { expiresAt } = verification[0];
+        const hashedOTP = verification[0].otp;
+        if (expiresAt < Date.now()) {
+          await Otp.deleteMany(userId);
+          throw new Error("code has expired ,please request again");
+        } else {
+          const validOtp = await bcrypt.compare(otp, hashedOTP);
+          if (!validOtp) {
+            throw new Error("Invalid code passes, please check your inbox");
+          } else {
+            await User.updateOne({ _id: userId }, { verified: true });
+            await Otp.deleteMany({ userId });
+            res.json({
+              status: "VERIFIED",
+              message: "User verified and login successfully",
+            });
+          }
         }
       }
     }
-  }
-}
-  catch(e){
+  } catch (e) {
     res.json({
       status: "FAILED",
       message: e.message,
     });
   }
-  }
-
+};

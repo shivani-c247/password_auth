@@ -1,7 +1,6 @@
 const router = require('express').Router()
-     const controller = require('../controller/userMgic')
+     const controller = require('../controller/userMagicLink')
 
-     router.post('/enter',controller.login)
-     router.post('/verify',controller.verify_token)
+     router.post('/email',controller.login)
 
      module.exports = router
