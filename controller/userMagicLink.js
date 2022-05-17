@@ -1,6 +1,5 @@
 const Magic = require("../model/userMagic");
 const jwt = require("jsonwebtoken");
-const validator = require("validator");
 const jwt_secret = "this is my jwt token gjh";
 const { v4: uuidv4 } = require("uuid");
 const { send_magic_link } = require("./emailMagicLink");
@@ -49,7 +48,7 @@ exports.login = async (req, res) => {
       const token = jwt.sign(user.toJSON(), jwt_secret, { expiresIn: "1h" });
       await Magic.findOneAndUpdate(
         { Email: email },
-        //{ MagicLinkExpired: true }
+        { MagicLinkExpired: true }
       );
       res.json({ ok: true, message: "Welcome back", token, email });
     } else
@@ -61,5 +60,6 @@ exports.login = async (req, res) => {
     res.json({ ok: false, error });
   }
 };
+
 
 

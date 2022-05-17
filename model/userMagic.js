@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema({
 		type     : String, 
 		required : false,
 		unique   : false,
-		default  : 'Anonymous'
+		//default  : 'Anonymous'
 	},
 	Email: { 
 		type     : String, 
@@ -29,5 +29,5 @@ const UserSchema = new mongoose.Schema({
 {strictQuery: false}
 )
 
-const Users = mongoose.model('Magic', UserSchema)
-module.exports = Users
+const Magic = mongoose.model('Magic', UserSchema)
+module.exports = Magic

@@ -1,11 +1,11 @@
-const User = require("../model/userModel");
+const User = require("../model/userOtpModel");
 const Otp = require("../model/otpModel");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const dotenv = require("dotenv");
 dotenv.config();
 
-exports.signup = async (req, res, next) => {
+exports.signUp = async (req, res, next) => {
   const { username, email, password } = req.body;
   if (username == "" || email == "" || password == "") {
     res.json({
@@ -29,7 +29,7 @@ exports.signup = async (req, res, next) => {
           console.log(e);
           res.json({
             status: "failed",
-            message: "create error",
+            message: "creating error",
           });
         });
     });
@@ -93,7 +93,9 @@ exports.verify = async (req, res) => {
         userId,
       });
       if (verification.length <= 0) {
-        throw new Error("Account record does not  exist you have user One time Otp ");
+        throw new Error(
+          "Account record does not  exist you have user One time Otp "
+        );
       } else {
         const { expiresAt } = verification[0];
         const hashedOTP = verification[0].otp;

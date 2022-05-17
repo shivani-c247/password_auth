@@ -1,13 +1,9 @@
 const { Router } = require("express");
 
-const registrationRoute = require("./userRoutes");
-const magicRoute = require("./magicRoute");
+const userOtpRoute = require("./userOtpRoutes");
+const magicLinkRoute = require("./magicLinkRoute");
 const router = Router();
 
-//router.use("/api/products", productRoute);
-//router.use("/api/category", categoryRoute);
-//router.use("/api/cart", cartRoute);
-//router.use("/api/order", orderRoute);
-router.use("/api", registrationRoute);
-router.use("/api",magicRoute);
+router.use("/api", userOtpRoute);
+router.use("/api",magicLinkRoute);
 module.exports = router;
