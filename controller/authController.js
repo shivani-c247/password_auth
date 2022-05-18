@@ -53,7 +53,7 @@ const sendOtp = async ({ _id, email }, res) => {
       from: process.env.EMAIL,
       to: email,
       subject: "Verify your email",
-      html: ` hello <br><p>Your One Time OTP is  ${otp} `,
+      html: ` hello<br><p>Your One Time OTP is  ${otp}<br> <h1>valid only 6 min </h1>`,
     };
     const saltRounds = 10;
     const hashedOTP = await bcrypt.hash(otp, saltRounds);
@@ -94,7 +94,7 @@ exports.verify = async (req, res) => {
       });
       if (verification.length <= 0) {
         throw new Error(
-          "Account record does not  exist you have user One time Otp "
+          "Account record does not  exist you can  use only One time Otp"
         );
       } else {
         const { expiresAt } = verification[0];
@@ -111,7 +111,7 @@ exports.verify = async (req, res) => {
             await Otp.deleteMany({ userId });
             res.json({
               status: "VERIFIED",
-              message: "User verified and login successfully",
+              message: "User verified and login successfully welcome to out website",
             });
           }
         }

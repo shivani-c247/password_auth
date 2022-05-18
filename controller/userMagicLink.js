@@ -1,6 +1,6 @@
 const Magic = require("../model/userMagic");
 const jwt = require("jsonwebtoken");
-const jwt_secret = "this is my jwt token gjh";
+const jwt_secret = process.env.JWT_SECRET;
 const { v4: uuidv4 } = require("uuid");
 const { send_magic_link } = require("./emailMagicLink");
 
