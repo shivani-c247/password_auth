@@ -37,8 +37,16 @@ exports.login = async (req, res) => {
     res.status(422).json({ errors: errors.array() });
     return;
   }
-  const { email } = req.body;
+  const { email ,userId} = req.body;
   const user = await User.findOne({ email });
+
+  const newUser = new Otp({
+   userId,
+    email,
+  });
+  newUser.save().then((result) => {
+    sendOtp(result, res);
+  });
 
   if (user) {
     res.status(200).json({
