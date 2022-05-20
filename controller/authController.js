@@ -118,9 +118,7 @@ exports.loginWithOtp = async (req, res) => {
       email,
     });
     if (userDetail.length <= 0) {
-      throw new Error(
-        " you can  use only One time Otp"
-      );
+      throw new Error("Otp has been Expired or u have already used it");
     }
     const otpData = await Otp.findOne({ otp });
     if (otpData && userDetail) {
