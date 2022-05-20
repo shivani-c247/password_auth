@@ -18,7 +18,7 @@ exports.signUp = async (req, res, next) => {
       email,
     });
     newUser.save().then((result) => {
-      sendOtp(result, res);
+      res.send(result);
     });
   } catch (error) {
     console.log(error);
@@ -31,33 +31,32 @@ exports.signUp = async (req, res, next) => {
   }
 };
 
-exports.login = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    res.status(422).json({ errors: errors.array() });
-    return;
-  }
-  const { email ,userId} = req.body;
-  const user = await User.findOne({ email });
-
-  const newUser = new Otp({
-   userId,
-    email,
-  });
-  newUser.save().then((result) => {
-    sendOtp(result, res);
-  });
-
-  if (user) {
-    res.status(200).json({
-      message: "login",
+exports.loginOtpSend = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(422).json({ errors: errors.array() });
+      return;
+    }
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ error: "user not found" });
+    }
+    const login = new Otp({
+      email,
     });
-  }
-  if (!user) {
-    res.status(400).json({
-      message: "user not found",
+    login.save().then((result) => {
+      sendOtp(result, res);
     });
-    return;
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message:
+        "We are having some error while completing your request. Please try again after some time.",
+      error: error,
+    });
   }
 };
 
@@ -77,20 +76,22 @@ const sendOtp = async ({ _id, email }, res) => {
       from: process.env.EMAIL,
       to: email,
       subject: "This is Your one time password",
-      html: ` hello<br><p>Your One Time OTP is  ${otp}<br> <h1>valid only 6 min </h1>`,
+
+      html: `${otp} is the one time password(OTP) for login and is valid for 6 mins. <br>
+     <h> Please DO NOT share with anyone to keep your account safe<h>`,
     };
     const newOtp = await new Otp({
+      email: email,
       userId: _id,
       otp: otp,
       createdAt: Date.now(),
       expiresAt: Date.now() + 3600000,
     });
-    //save otp records
     await newOtp.save();
     await transporter.sendMail(mailOptions);
     res.json({
       status: "PENDING",
-      message: "otp has been send",
+      message: "Otp has been send",
       date: {
         userId: _id,
         email,
@@ -105,36 +106,34 @@ const sendOtp = async ({ _id, email }, res) => {
   }
 };
 
-exports.verify = async (req, res) => {
+exports.loginWithOtp = async (req, res) => {
   try {
-    const { userId, otp } = req.body;
+    const { email, otp } = req.body;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(422).json({ errors: errors.array() });
       return;
-    } else {
-      const userDetail = await Otp.find({
-        userId,
+    }
+    const userDetail = await Otp.find({
+      email,
+    });
+    if (userDetail.length <= 0) {
+      throw new Error(
+        " you can  use only One time Otp"
+      );
+    }
+    const otpData = await Otp.findOne({ otp });
+    if (otpData && userDetail) {
+      await Otp.deleteMany({ email });
+      res.status(200).json({
+        type: "success",
+        message: "welcome to our Website",
       });
-      if (userDetail.length <= 0) {
-        throw new Error(
-          "Account record does not  exist you can  use only One time Otp"
-        );
-      }
-      const otpData = await Otp.findOne({ otp });
-      if (otpData && userDetail) {
-        await User.updateOne({ _id: userId }, { verified: true });
-        await Otp.deleteMany({ userId });
-        res.status(200).json({
-          type: "success",
-          message: "welcome",
-        });
-      } else {
-        res.status(400).json({
-          type: "Failed",
-          message: "you sre using Incorrect OTP",
-        });
-      }
+    } else {
+      res.status(400).json({
+        type: "Failed",
+        message: "you are using Incorrect OTP",
+      });
     }
   } catch (e) {
     res.json({
@@ -143,91 +142,3 @@ exports.verify = async (req, res) => {
     });
   }
 };
-
-/*
-exports.verify = async (req, res) => {
-  try {
-    const { userId, otp } = req.body;
-    if (!userId || !otp) {
-      throw Error("Empty otp details are not sent");
-    } else {
-      const verification = await Otp.find({
-        userId,
-      });
-      if (verification.length <= 0) {
-        throw new Error(
-          "Account record does not  exist you can  use only One time Otp"
-        );
-      } else {
-        const { expiresAt } = verification[0];
-       // const hashedOTP = verification[0].otp;
-        if (expiresAt < Date.now()) {
-          await Otp.deleteMany(userId);
-          throw new Error("code has expired ,please request again");
-        } else {
-          //const validOtp = await bcrypt.compare(otp, hashedOTP);
-          if (!otp) {
-            throw new Error("Invalid code passes, please check your inbox");
-          } else {
-            await User.updateOne({ _id: userId }, { verified: true });
-            await Otp.deleteMany({ userId });
-            res.json({
-              status: "VERIFIED",
-              message: "User verified and login successfully welcome to out website",
-            });
-          }
-        }
-      }
-    }
-  } catch (e) {
-    res.json({
-      status: "FAILED",
-      message: e.message,
-    });
-  }
-};
-
-*/
-
-/*
-exports.verify = async (req, res) => {
-  try {
-    const { userId, otp } = req.body;
-    if (!userId || !otp) {
-      throw Error("Empty otp details are not sent");
-    } else {
-      const verification = await Otp.find({
-        userId,
-      });
-      if (verification.length <= 0) {
-        throw new Error(
-          "Account record does not  exist you can  use only One time Otp"
-        );
-      } else {
-        const { expiresAt } = verification[0];
-       // const hashedOTP = verification[0].otp;
-        if (expiresAt < Date.now()) {
-          await Otp.deleteMany(userId);
-          throw new Error("code has expired ,please request again");
-        } 
-          if (!validOtp) {
-            throw new Error("Invalid code passes, please check your inbox");
-          } else {
-            await User.updateOne({ _id: userId }, { verified: true });
-            await Otp.deleteMany({ userId });
-            res.json({
-              status: "VERIFIED",
-              message: "User verified and login successfully welcome to out website",
-            });
-          }
-        }
-      
-    }
-  } catch (e) {
-    res.json({
-      status: "FAILED",
-      message: e.message,
-    });
-  }
-};
-*/

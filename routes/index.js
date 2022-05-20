@@ -1,5 +1,4 @@
 const { Router } = require("express");
-
 const userOtpRoute = require("./userOtpRoutes");
 const magicLinkRoute = require("./magicLinkRoute");
 const router = Router();

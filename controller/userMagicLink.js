@@ -2,7 +2,7 @@ const Magic = require("../model/userMagic");
 const jwt = require("jsonwebtoken");
 const jwt_secret = process.env.JWT_SECRET;
 const { v4: uuidv4 } = require("uuid");
-const { send_magic_link } = require("./emailMagicLink");
+const { sendMagicLink } = require("./emailMagicLink");
 
 const register = async (email) => {
   try {
@@ -12,7 +12,7 @@ const register = async (email) => {
     };
     let user = await Magic.create(newUser);
     // send magic link to email
-    let sendEmail = send_magic_link(email, user.MagicLink, "signup");
+    let sendEmail = sendMagicLink(email, user.MagicLink, "signup");
     return { ok: true, message: "User created" };
   } catch (error) {
     return { ok: false, error };
@@ -38,10 +38,10 @@ exports.login = async (req, res) => {
           { returnDocument: "after" }
         );
         // send email with magic link
-        send_magic_link(email, user.MagicLink);
+        sendMagicLink(email, user.MagicLink);
         res.send({ ok: true, message: "Hit the link in email to sign in" });
-      } catch(e){
-        console.log(e)
+      } catch (e) {
+        console.log(e);
         res.json({ ok: false, e });
       }
     } else if (user.MagicLink == magicLink && !user.MagicLinkExpired) {
@@ -60,6 +60,3 @@ exports.login = async (req, res) => {
     res.json({ ok: false, error });
   }
 };
-
-
-
