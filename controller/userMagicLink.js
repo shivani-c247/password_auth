@@ -7,7 +7,7 @@ const { sendMagicLink } = require("./emailMagicLink");
 const register = async (email) => {
   try {
     const newUser = {
-      Email: email,
+      email: email,
       MagicLink: uuidv4(),
     };
     let user = await Magic.create(newUser);
@@ -22,7 +22,7 @@ const register = async (email) => {
 exports.login = async (req, res) => {
   const { email, magicLink } = req.body;
   try {
-    const user = await Magic.findOne({ Email: email });
+    const user = await Magic.findOne({ email: email });
     if (!user) {
       let reg = await register(email);
       res.send({
@@ -33,9 +33,8 @@ exports.login = async (req, res) => {
     } else if (!magicLink) {
       try {
         const user = await Magic.findOneAndUpdate(
-          { Email: email },
-          { MagicLink: uuidv4(), MagicLinkExpired: false },
-          { returnDocument: "after" }
+          { email: email },
+          { MagicLink: uuidv4(), MagicLinkExpired: false }
         );
         // send email with magic link
         sendMagicLink(email, user.MagicLink);
@@ -47,7 +46,7 @@ exports.login = async (req, res) => {
     } else if (user.MagicLink == magicLink && !user.MagicLinkExpired) {
       const token = jwt.sign(user.toJSON(), jwt_secret, { expiresIn: "1h" });
       await Magic.findOneAndUpdate(
-        { Email: email },
+        { email: email },
         { MagicLinkExpired: true }
       );
       res.json({ ok: true, message: "Welcome back", token, email });

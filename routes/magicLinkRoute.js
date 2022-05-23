@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const controller = require("../controller/userMagicLink");
 
-router.post("/email", controller.login);
+router.post("/signUpLogin", controller.login);
 
 module.exports = router;

@@ -9,6 +9,10 @@ router.post(
   validate.loginValidation,
   userController.loginOtpSend
 );
-router.post("/loginWithOtp", userController.loginWithOtp);
+router.post(
+  "/loginWithOtp",
+  validate.otpValidation,
+  userController.loginWithOtp
+);
 
 module.exports = router;
