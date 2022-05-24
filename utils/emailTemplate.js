@@ -1,4 +1,3 @@
-const Otp = require("../model/otpModel");
 const nodemailer = require("nodemailer");
 const sendOtp = async ({ _id, email }, res) => {
   try {
@@ -11,7 +10,6 @@ const sendOtp = async ({ _id, email }, res) => {
         pass: process.env.PASS,
       },
     });
-
     const mailOptions = {
       from: process.env.EMAIL,
       to: email,
@@ -19,16 +17,8 @@ const sendOtp = async ({ _id, email }, res) => {
       html: `${otp} is the one time password(OTP) for login and is valid for 6 mins. <br>
        <h> Please DO NOT share with anyone to keep your account safe<h>`,
     };
-    const newOtp = await new Otp({
-      email,
-      userId: _id,
-      otp,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 3600000,
-    });
-    await newOtp.save();
     await transporter.sendMail(mailOptions);
-    res.json({
+    return res.json({
       status: "PENDING",
       message: "Otp has been sent",
       date: {
@@ -44,5 +34,4 @@ const sendOtp = async ({ _id, email }, res) => {
     });
   }
 };
-
 module.exports.sendOtp = sendOtp;

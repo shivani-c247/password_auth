@@ -1,9 +1,8 @@
 const User = require("../model/userOtpModel");
 const Otp = require("../model/otpModel");
 const { validationResult } = require("express-validator");
-const { sendOtp } = require("../utils/helper");
+const { sendOtp } = require("../utils/emailTemplate");
 const jwt = require("jsonwebtoken");
-const jwt_secret = process.env.JWT_SECRET;
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -33,15 +32,24 @@ exports.signUp = async (req, res, next) => {
   }
 };
 
-exports.loginOtpSend = async (req, res) => {
+exports.loginOtpSend = async (req, res, _id) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(422).json({ errors: errors.array() });
       return;
     }
+    const otp = `${Math.floor(100 + Math.random() * 9000)}`;
     const { email } = req.body;
-    const user = await User.findOne({ email }).then((result) => {
+    const user = await User.findOne({ email });
+    const OtpDetail = new Otp({
+      email,
+      userId: _id,
+      otp,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 3600000,
+    });
+    OtpDetail.save().then((result) => {
       sendOtp(result, res);
     });
   } catch (error) {
@@ -67,7 +75,10 @@ exports.loginWithOtp = async (req, res) => {
       email,
     });
     if (userDetail.length <= 0) {
-      throw new Error(" otp has been expired");
+      return res.status(400).json({
+        type: "FAILED",
+        message: "Otp has been expired ",
+      });
     }
     const otpData = await Otp.findOne({ otp });
     const token = jwt.sign(

@@ -1,6 +1,5 @@
 const { body } = require("express-validator");
 const User = require("../model/userOtpModel");
-const Otp = require("../model/otpModel");
 
 exports.validate = [
   body("username")

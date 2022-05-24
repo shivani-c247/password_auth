@@ -6,13 +6,13 @@ const UserSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  MagicLink: {
+  magic_link: {
     type: String,
     required: false,
     unique: false,
     default: uuidv4,
   },
-  MagicLinkExpired: {
+  magicLinkExpired: {
     type: Boolean,
     default: false,
   },
